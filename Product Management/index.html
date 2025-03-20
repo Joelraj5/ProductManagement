@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management</title>
+    <link rel="stylesheet" href="product_management.css">
+</head>
+<body>
+    <h2>Product Management System</h2>
+    <form id="productForm">
+        <input type="hidden" id="productId">
+        <input type="text" id="productName" placeholder="Enter Product Name" required>
+        <input type="number" id="productPrice" placeholder="Enter Price" required>
+        <button type="submit">Submit</button>
+    </form>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="productTableBody"></tbody>
+    </table>
+    <script src="product_management.js"></script>
+</body>
+</html>

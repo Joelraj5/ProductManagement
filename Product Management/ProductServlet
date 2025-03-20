@@ -1,0 +1,89 @@
+import java.io.IOException;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+@WebServlet("/ProductServlet")
+public class ProductServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+    private static final String JDBC_URL = "jdbc:mysql://localhost:3306/productdb";
+    private static final String JDBC_USER = "root";
+    private static final String JDBC_PASSWORD = "Joelking@05";
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String action = request.getParameter("action");
+        
+        try (Connection conn = DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASSWORD)) {
+            switch (action) {
+                case "create":
+                    createProduct(request, conn);
+                    break;
+                case "update":
+                    updateProduct(request, conn);
+                    break;
+                case "delete":
+                    deleteProduct(request, conn);
+                    break;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        response.setContentType("application/json");
+        response.getWriter().write("{\"status\":\"success\"}");
+    }
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        JSONArray products = new JSONArray();
+        try (Connection conn = DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASSWORD)) {
+            ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM products");
+            while (rs.next()) {
+                JSONObject product = new JSONObject();
+                product.put("id", rs.getInt("id"));
+                product.put("name", rs.getString("name"));
+                product.put("category", rs.getString("category"));
+                product.put("price", rs.getDouble("price"));
+                products.put(product);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        response.setContentType("application/json");
+        response.getWriter().write(products.toString());
+    }
+
+    private void createProduct(HttpServletRequest request, Connection conn) throws SQLException {
+        String name = request.getParameter("name");
+        String category = request.getParameter("category");
+        double price = Double.parseDouble(request.getParameter("price"));
+        PreparedStatement stmt = conn.prepareStatement("INSERT INTO products (name, category, price) VALUES (?, ?, ?)");
+        stmt.setString(1, name);
+        stmt.setString(2, category);
+        stmt.setDouble(3, price);
+        stmt.executeUpdate();
+    }
+
+    private void updateProduct(HttpServletRequest request, Connection conn) throws SQLException {
+        int id = Integer.parseInt(request.getParameter("id"));
+        String name = request.getParameter("name");
+        String category = request.getParameter("category");
+        double price = Double.parseDouble(request.getParameter("price"));
+        PreparedStatement stmt = conn.prepareStatement("UPDATE products SET name=?, category=?, price=? WHERE id=?");
+        stmt.setString(1, name);
+        stmt.setString(2, category);
+        stmt.setDouble(3, price);
+        stmt.setInt(4, id);
+        stmt.executeUpdate();
+    }
+
+    private void deleteProduct(HttpServletRequest request, Connection conn) throws SQLException {
+        int id = Integer.parseInt(request.getParameter("id"));
+        PreparedStatement stmt = conn.prepareStatement("DELETE FROM products WHERE id=?");
+        stmt.setInt(1, id);
+        stmt.executeUpdate();
+    }
+}
